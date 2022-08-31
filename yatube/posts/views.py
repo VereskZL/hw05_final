@@ -68,7 +68,7 @@ def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     post_count = post.author.posts.count()
     comments = post.comments.all()
-    form = CommentForm(request.POST or None)
+    form = CommentForm()
     context = {
         'post_number': post_count,
         'post': post,
@@ -115,7 +115,7 @@ def post_edit(request, post_id):
 @login_required
 def add_comment(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    form = CommentForm()
+    form = CommentForm(request.POST or None)
     if form.is_valid():
         comment = form.save(commit=False)
         comment.author = request.user
