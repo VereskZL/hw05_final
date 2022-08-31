@@ -3,41 +3,43 @@
 {% block content %} 
 {% load thumbnail %}
 {% load user_filters %}
-      <div class="row">
-        <aside class="col-12 col-md-3">
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              Дата публикации: {{ post.pub_date|date:"d E Y" }}
-            </li>
-            {% if post.group %}  
-              <li class="list-group-item"> 
-                <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы {{ post.group.title }}</a>
-              </li>
-            {% endif %}  
-            <li class="list-group-item">
-              Автор: {{ post.author }}
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              Всего постов автора:  <span >{{ post_number }}</span>
-            </li>
-              <li class="list-group-item">
-                <a href="{% url 'posts:profile' post.author %}"> все посты пользователя {{ post.author }}</a>
-              </li>
-          </ul>
-        </aside>
-        <article class="col-12 col-md-9">
-          <p>
-          {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
-          <img class="card-img my-2" src="{{ im.url }}">
-          {% endthumbnail %}
-          {{ post.text }}
-          </p>
-          <a class="btn btn-primary" href="{% url 'posts:edit' post.id %}">
-            редактировать запись
-          </a>
-        </article>
-      </div> 
-      {% if user.is_authenticated %}
+<div class="row">
+  <aside class="col-12 col-md-3">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+        Дата публикации: {{ post.pub_date|date:"d E Y" }}
+      </li>
+      {% if post.group %}  
+        <li class="list-group-item"> 
+          <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы {{ post.group.title }}</a>
+        </li>
+      {% endif %}  
+      <li class="list-group-item">
+        Автор: {{ post.author }}
+      </li>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        Всего постов автора:  <span >{{ post_number }}</span>
+      </li>
+      <li class="list-group-item">
+        <a href="{% url 'posts:profile' post.author %}"> все посты пользователя {{ post.author }}</a>
+      </li>
+    </ul>
+  </aside>
+  <article class="col-12 col-md-9">
+    <p>
+    {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
+      <img class="card-img my-2" src="{{ im.url }}">
+    {% endthumbnail %}
+    {{ post.text }}
+    </p>
+    {% if author != user %}
+    <a class="btn btn-primary" href="{% url 'posts:edit' post.id %}">
+      редактировать запись
+    </a>
+    {% endif %}
+  </article>
+</div> 
+{% if user.is_authenticated %}
   <div class="card my-4">
     <h5 class="card-header">Добавить комментарий:</h5>
     <div class="card-body">
@@ -62,7 +64,7 @@
       </h5>
       <p>
         {{ comment.text }}
-        {{comment.data}}
+        {{ comment.data }}
       </p>
       <hr>
     </div>

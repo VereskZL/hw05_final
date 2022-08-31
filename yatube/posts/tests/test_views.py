@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.conf import settings
 from django import forms
 
-from ..models import Group, Post, Follow
+from ..models import Group, Post, Follow, Comment
 
 User = get_user_model()
 
@@ -18,6 +18,8 @@ FOLLOW_INDEX = reverse('posts:follow_index')
 CREATE = reverse('posts:create_post')
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+
+COMMENT_TEXT = 'Test comment'
 
 SMALL_GIF = (
     b'\x47\x49\x46\x38\x39\x61\x02\x00'
@@ -260,7 +262,7 @@ class FollowViewsTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='testuser')
-        cls.another_user = User.objects.create_user(username='NPC')
+        cls.another_user = User.objects.create_user(username='author')
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.user)
         cls.guest_client = Client()
@@ -305,3 +307,64 @@ class FollowViewsTest(TestCase):
     def test_new_post_doesnt_shown_to_follower(self):
         response = self.authorized_client.get(FOLLOW_INDEX)
         self.assertNotIn(self.post, response.context['page_obj'])
+
+    def test_user_cant_follow_youself(self):
+        """Автор не может подписаться на себя"""
+        self.authorized_client.get(
+            self.FOLLOW
+        )
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.another_user,
+                author=self.another_user).exists()
+        )
+    def test_guest_cant_follow(self):
+        """Гость не может подписаться"""
+        self.guest_client.get(
+            self.FOLLOW
+        )
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.user,
+                author=self.another_user).exists()
+        )
+
+
+class CommentFormTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='VIP_NPS')
+        cls.user = User.objects.create_user(username='MarieL')
+        cls.authorized_client = Client()
+        cls.authorized_client.force_login(cls.user)
+        cls.guest_client = Client()
+        cls.group = Group.objects.create(
+            title='Тестовая группа',
+            slug='test_slug',
+            description='Тестовое описание',
+        )
+        cls.post = Post.objects.create(
+            text='Тестовый пост',
+            author=cls.user,
+            group=cls.group
+        )
+        cls.ADD_COMMENT = reverse(
+            'posts:add_comment',
+            kwargs={
+                'post_id': cls.post.id}
+        )
+    def test_add_comment_guest(self):
+        """Комментарий не появляется в базе после добавления гостем"""
+        comments_before = set(self.post.comments.all())
+        form_data = {
+            'text': COMMENT_TEXT
+        }
+        self.guest_client.post(
+            self.ADD_COMMENT,
+            data=form_data,
+            follow=True
+        )
+        comments_after = set(Comment.objects.filter(post=self.post))
+        list_diff = comments_before ^ comments_after
+        self.assertEqual(len(list_diff), 0)

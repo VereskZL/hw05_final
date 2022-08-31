@@ -115,7 +115,7 @@ def post_edit(request, post_id):
 @login_required
 def add_comment(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    form = CommentForm(request.POST or None)
+    form = CommentForm()
     if form.is_valid():
         comment = form.save(commit=False)
         comment.author = request.user
@@ -126,9 +126,7 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
-    print('__________HI________________')
     post = Post.objects.filter(author__following__user=request.user)
-    print(post)
     template = 'posts/follow.html'
     paginator = Paginator(post, POST_IN_PAGE)
     page_number = request.GET.get('page')
