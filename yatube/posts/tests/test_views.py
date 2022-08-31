@@ -318,6 +318,7 @@ class FollowViewsTest(TestCase):
                 user=self.another_user,
                 author=self.another_user).exists()
         )
+
     def test_guest_cant_follow(self):
         """Гость не может подписаться"""
         self.guest_client.get(
@@ -354,6 +355,7 @@ class CommentFormTests(TestCase):
             kwargs={
                 'post_id': cls.post.id}
         )
+
     def test_add_comment_guest(self):
         """Комментарий не появляется в базе после добавления гостем"""
         comments_before = set(self.post.comments.all())
