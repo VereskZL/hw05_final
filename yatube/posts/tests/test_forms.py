@@ -6,8 +6,8 @@ from django.test import Client, TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from ..forms import PostForm
-from ..models import Post, Group, Comment
-from .test_views import SMALL_GIF, COMMENT_TEXT, TEMP_MEDIA_ROOT
+from ..models import Post, Group
+from .test_views import SMALL_GIF, TEMP_MEDIA_ROOT
 
 User = get_user_model()
 
@@ -44,7 +44,6 @@ class PostFormTests(TestCase):
     def tearDownClass(cls):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
-
 
     def test_create_task(self):
         """Валидная форма создает запись в Post."""
