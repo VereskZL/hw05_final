@@ -1,15 +1,18 @@
+import shutil
+
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from ..forms import PostForm
 from ..models import Post, Group, Comment
-from .test_views import SMALL_GIF, COMMENT_TEXT
+from .test_views import SMALL_GIF, COMMENT_TEXT, TEMP_MEDIA_ROOT
 
 User = get_user_model()
 
 
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -36,6 +39,12 @@ class PostFormTests(TestCase):
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
+
 
     def test_create_task(self):
         """Валидная форма создает запись в Post."""
@@ -100,18 +109,3 @@ class CommentFormTests(TestCase):
             kwargs={
                 'post_id': cls.post.id}
         )
-
-    def test_add_comment_guest(self):
-        """Комментарий не появляется в базе после добавления гостем"""
-        comments_before = set(self.post.comments.all())
-        form_data = {
-            'text': COMMENT_TEXT
-        }
-        self.guest_client.post(
-            self.ADD_COMMENT,
-            data=form_data,
-            follow=True
-        )
-        comments_after = set(Comment.objects.filter(post=self.post))
-        list_diff = comments_before ^ comments_after
-        self.assertEqual(len(list_diff), 0)

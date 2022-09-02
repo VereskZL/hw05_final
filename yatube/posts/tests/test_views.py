@@ -331,7 +331,7 @@ class FollowViewsTest(TestCase):
         )
 
 
-class CommentFormTests(TestCase):
+class CommentViewsTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

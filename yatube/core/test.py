@@ -1,6 +1,8 @@
 from http import HTTPStatus
+from urllib import request
 
 from django.test import Client, TestCase
+from django.shortcuts import render
 
 
 class StaticURLTests(TestCase):
@@ -16,3 +18,8 @@ class StaticURLTests(TestCase):
         """Проверка шаблона для адреса /not_found/."""
         response = self.guest_client.get('/not_found/')
         self.assertTemplateUsed(response, 'core/404.html')
+
+    def test_403_error(self):
+        response = self.guest_client.get('/admin') 
+        response.status_code = 403
+        self.assertTemplateUsed(response, 'core/403csrf.html')
