@@ -336,9 +336,6 @@ class CommentViewsTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='VIP_NPS')
-        cls.user = User.objects.create_user(username='MarieL')
-        cls.authorized_client = Client()
-        cls.authorized_client.force_login(cls.user)
         cls.guest_client = Client()
         cls.group = Group.objects.create(
             title='Тестовая группа',

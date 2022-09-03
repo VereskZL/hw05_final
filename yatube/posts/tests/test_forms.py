@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from ..forms import PostForm
 from ..models import Post, Group
-from .test_views import SMALL_GIF, TEMP_MEDIA_ROOT
+from .test_views import SMALL_GIF, TEMP_MEDIA_ROOT, COMMENT_TEXT
 
 User = get_user_model()
 
@@ -88,19 +88,12 @@ class CommentFormTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='VIP_NPS')
-        cls.user = User.objects.create_user(username='MarieL')
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.user)
         cls.guest_client = Client()
-        cls.group = Group.objects.create(
-            title='Тестовая группа',
-            slug='test_slug',
-            description='Тестовое описание',
-        )
         cls.post = Post.objects.create(
             text='Тестовый пост',
             author=cls.user,
-            group=cls.group
         )
         cls.form = PostForm()
         cls.ADD_COMMENT = reverse(
@@ -108,3 +101,23 @@ class CommentFormTests(TestCase):
             kwargs={
                 'post_id': cls.post.id}
         )
+
+    def test_add_comment(self):
+        """Комментарий появляется в базе после добавления
+            авторизованным пользователем"""
+        comments_before = set(self.post.comments.all())
+        form_data = {
+            'text': COMMENT_TEXT
+        }
+        response = self.authorized_client.post(
+            self.ADD_COMMENT,
+            data=form_data,
+            follow=True
+        )
+        comments_after = set(response.context['comments'])
+        list_diff = comments_before ^ comments_after
+        self.assertEqual(len(list_diff), 1)
+        new_comment = list_diff.pop()
+        self.assertEqual(new_comment.text, COMMENT_TEXT)
+        self.assertEqual(new_comment.author, self.user)
+        self.assertEqual(new_comment.post, self.post)

@@ -148,4 +148,4 @@ CACHES = {
     }
 }
 
-CSRF_COOKIE_NAME = 'core.views.permission_denied'
+CSRF_FAILURE_VIEW = 'core.views.permission_denied'
